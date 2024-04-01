@@ -1,0 +1,94 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "iam:GetAccountPasswordPolicy",
+      "Resource": "*",
+      "Effect": "Allow"
+    },
+    {
+      "Action": [
+        "iam:ListMFADevices",
+        "iam:ListVirtualMFADevices",
+        "iam:ListUsers",
+        "iam:ListServiceSpecificCredentials",
+        "iam:ListServiceSpecificCredentials"
+      ],
+      "Resource": "*",
+      "Effect": "Allow",
+      "Sid": "AllowUsersToListMFADevicesandUsersForConsole"
+    },
+    {
+      "Action": [
+        "iam:ChangePassword",
+        "iam:GetLoginProfile"
+      ],
+      "Resource": [
+        "arn:aws:iam::${account_id}:user/${customer_acc}"
+      ],
+      "Effect": "Allow"
+    },
+    {
+      "Condition": {
+        "Bool": {
+          "aws:MultiFactorAuthPresent": "true"
+        }
+      },
+      "Action": [
+        "iam:DeactivateMFADevice",
+        "iam:*LoginProfile",
+        "iam:*AccessKey*",
+        "iam:*SSHPublicKey*",
+        "iam:*ServiceSpecificCredential"
+      ],
+      "Resource": [
+        "arn:aws:iam::${account_id}:user/${customer_acc}",
+        "arn:aws:iam::${account_id}:mfa/${customer_acc}"
+      ],
+      "Effect": "Allow",
+      "Sid": "AllowUsersToDeactivateTheirOwnVirtualMFADevice"
+    },
+    {
+      "Condition": {
+        "BoolIfExists": {
+          "aws:MultiFactorAuthPresent": "false"
+        }
+      },
+      "Action": [
+        "iam:CreateVirtualMFADevice",
+        "iam:EnableMFADevice",
+        "iam:ResyncMFADevice",
+        "iam:DeleteVirtualMFADevice"
+      ],
+      "Resource": [
+        "arn:aws:iam::${account_id}:user/${customer_acc}",
+        "arn:aws:iam::${account_id}:mfa/${customer_acc}"
+      ],
+      "Effect": "Allow",
+      "Sid": "AllowUsersToCreateEnableResyncDeleteTheirOwnVirtualMFADevice"
+    },
+    {
+      "Condition": {
+        "Bool": {
+          "aws:MultiFactorAuthPresent": "false"
+        }
+      },
+      "Resource": [
+        "*"
+      ],
+      "Effect": "Deny",
+      "NotAction": [
+        "iam:CreateVirtualMFADevice",
+        "iam:EnableMFADevice",
+        "iam:ResyncMFADevice",
+        "iam:DeleteVirtualMFADevice",
+        "iam:ListMFADevices",
+        "iam:ListVirtualMFADevices",
+        "iam:ListUsers",
+        "iam:ChangePassword",
+        "iam:GetLoginProfile"
+      ],
+      "Sid": "DenyAllActionsIfMFAnotPresented"
+    }
+  ]
+}
